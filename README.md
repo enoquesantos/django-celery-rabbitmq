@@ -1,7 +1,7 @@
 # django-celery-rabbitmq
-A basic project with Django + MySQL + Celery + RabbitMQ
+A pure simple Django + Celery + RabbitMQ project
 
-## start application with docker
+## start and run with docker
 ```
 cd docker
 docker-compose up
@@ -15,8 +15,7 @@ http://localhost:8000
 ## start and run manually
 ### Create the .env
 1. Create a copy of application.env.example in application folder
-2. Create the database and set the user, host, password and port
-3. Add the .env parameters
+2. Add the .env parameters
 
 ### Create the virtual environment
 ```
@@ -33,9 +32,14 @@ source .venv/bin/activate
 pip3 install --no-cache-dir -r requirements.txt
 ```
 
+### Create the dependencies file for production with all lib version
+```
+pip3 freeze > requirements-production.txt
+```
+
 ### Create the migrations
 ```
-python3 manage.py makemigrations auth django_celery_results post_office posts
+python3 manage.py makemigrations auth django_celery_results post_office abstract post
 ```
 
 ### Apply the migrations to database
@@ -50,11 +54,13 @@ python3 manage.py createsuperuser
 
 ### Start the celery
 ```
+** run this command in separate terminal tab/window into projetct virtualenv **
 celery --app application worker -l INFO
 ```
 
 ### Start the celery beat for schedule tasks
 ```
+** run this command in separate terminal tab/window into projetct virtualenv **
 celery --app application beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
