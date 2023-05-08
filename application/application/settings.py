@@ -184,7 +184,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 TIME_ZONE = TIME_ZONE
-# LANGUAGES = []
+LANGUAGES = list(eval(get_env('LANGUAGES')))
 DATETIME_FORMAT = get_env('DATETIME_FORMAT')
 LANGUAGE_CODE = get_env('LANGUAGE_CODE')
 
@@ -195,10 +195,32 @@ LANGUAGE_CODE = get_env('LANGUAGE_CODE')
 LOGOUT_REDIRECT_URL = "/admin/login"
 
 
+# The dynamic path used in production where django save attached files
+# like images and docs.
+
+DINAMYC_FILES_PATH = get_env('DINAMYC_FILES_PATH', BASE_DIR + '../uploads')
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = get_env('STATIC_HOST', "") + '/static/'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
+
+# The path where django copy all assets and
+# images after collectstatic command when 'python manage.py collectstatic' run.
+
+STATIC_ROOT = DINAMYC_FILES_PATH + 'static/'
+
+
+# To handle file uploads from admin
+
+MEDIA_URL = get_env('MEDIA_HOST') + '/media/'
+MEDIA_ROOT = DINAMYC_FILES_PATH + 'uploads/media/'
 
 
 # Default primary key field type
