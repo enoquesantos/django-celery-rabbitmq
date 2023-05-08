@@ -31,7 +31,7 @@ ENVIRONMENT = get_env('ENVIRONMENT', 'production')
 SECRET_KEY = get_env('SECRET_KEY', secrets.token_hex(30))
 ALLOWED_HOSTS = get_env('ALLOWED_HOSTS').split()
 TIME_ZONE = get_env('TIME_ZONE')
-LOG_DIR = get_env('LOG_DIR', BASE_DIR + "/tmp-data/")
+LOG_DIR = get_env('LOG_DIR', dirname(BASE_DIR) + '/tmp-data/')
 LOG_FILE = LOG_DIR + '/application-debug.log'
 
 
@@ -63,7 +63,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Setting the Referrer-Policy Header
 # Django 3.x also added the ability to control the Referrer-Policy header. You can specify SECURE_REFERRER_POLICY in project/settings.py:
-SECURE_REFERRER_POLICY = get_env('SECURE_REFERRER_POLICY', "strict-origin-when-cross-origin")
+SECURE_REFERRER_POLICY = get_env('SECURE_REFERRER_POLICY', 'strict-origin-when-cross-origin')
 
 
 # Application definition
@@ -75,19 +75,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # third extensions
     'tinymce',
     'post_office',
+
+    # celery
     'django_celery_results',
     'django_celery_beat',
-    'health_check',                      # required
+
+    # dynamic system health check
+    'health_check',                      # django health checker extension (main)
     'health_check.db',                   # stock Django health checkers
     'health_check.cache',                # application python cache
-    'health_check.storage',              # armazenamento
-    'health_check.contrib.migrations',   # migrações do banco de dados
+    'health_check.storage',              # storage
+    'health_check.contrib.migrations',   # migrations
     'health_check.contrib.celery',       # celery
-    'health_check.contrib.celery_ping',  # celery
+    'health_check.contrib.celery_ping',  # celery runtime running check
     'health_check.contrib.psutil',       # disk and memory utilization
     'health_check.contrib.rabbitmq',     # requires RabbitMQ broker
+
+    # my apps
+    'apps.abstract.apps.AbstractConfig',
+    'apps.post.apps.PostConfig',
 ]
 
 MIDDLEWARE = [
@@ -98,17 +108,20 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # custom middleware
+    # custom middleware:
     'application.middleware.HealthCheckMiddleware',
     'application.middleware.DenyAdminFromApiRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'application.urls'
 
+
+# view templates
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR + '/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -135,8 +148,9 @@ DATABASES = {
         'PASSWORD': get_env('DATABASE_PASS'),
         'HOST': get_env('DATABASE_HOST'),
         'PORT': get_env('DATABASE_PORT'),
-        'CONN_MAX_AGE': 20,
-        'TIME_ZONE': TIME_ZONE,
+        # ** if the database engine is mysql **
+        # 'CONN_MAX_AGE': 20,
+        # 'TIME_ZONE': TIME_ZONE,
         # 'OPTIONS': {
         #     'ssl': ENVIRONMENT == 'production'
         # }
@@ -163,16 +177,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Email settings
+# Email
 
-EMAIL_BACKEND = get_env('EMAIL_BACKEND', "django.core.mail.backends.filebased.EmailBackend")
-EMAIL_HOST = get_env('EMAIL_HOST', "localhost")
+EMAIL_BACKEND = get_env('EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend')
+EMAIL_HOST = get_env('EMAIL_HOST', 'localhost')
 EMAIL_PORT = get_env('EMAIL_PORT', 25)
-EMAIL_HOST_USER = get_env('EMAIL_HOST_USER', "")
-EMAIL_HOST_PASSWORD = get_env('EMAIL_HOST_PASSWORD', "")
+EMAIL_HOST_USER = get_env('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = get_env('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = get_env('EMAIL_USE_TLS', False, True)
 EMAIL_USE_SSL = get_env('EMAIL_USE_SSL', False, True)
-EMAIL_FILE_PATH = get_env('EMAIL_FILE_PATH', BASE_DIR + "/tmp-data")
+EMAIL_FILE_PATH = get_env('EMAIL_FILE_PATH', BASE_DIR + '/tmp-data')
 DEFAULT_FROM_EMAIL = get_env('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
@@ -192,7 +206,7 @@ LANGUAGE_CODE = get_env('LANGUAGE_CODE')
 # Url where redirect user after logout
 # https://docs.djangoproject.com/en/4.1/ref/settings/#logout-redirect-url
 
-LOGOUT_REDIRECT_URL = "/admin/login"
+LOGOUT_REDIRECT_URL = '/admin/login'
 
 
 # The dynamic path used in production where django save attached files
@@ -204,7 +218,7 @@ DINAMYC_FILES_PATH = get_env('DINAMYC_FILES_PATH', BASE_DIR + '../uploads')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = get_env('STATIC_HOST', "") + '/static/'
+STATIC_URL = get_env('STATIC_HOST', '') + '/static/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -219,7 +233,7 @@ STATIC_ROOT = DINAMYC_FILES_PATH + 'static/'
 
 # To handle file uploads from admin
 
-MEDIA_URL = get_env('MEDIA_HOST') + '/media/'
+MEDIA_URL = get_env('MEDIA_HOST', '') + '/media/'
 MEDIA_ROOT = DINAMYC_FILES_PATH + 'uploads/media/'
 
 
@@ -235,14 +249,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 HTML_MINIFY = ENVIRONMENT != 'development'
 
 
-# Settings for django-tinymce - add TinyMCE
-# editor into Django admin forms (TextArea)
+# Settings for django-tinymce
+# add TinyMCE editor into Django admin forms (TextArea)
 # https://github.com/jazzband/django-tinymce
 
 TINYMCE_DEFAULT_CONFIG = { }
 
 
-# POST_OFFICE async email lib settings
+# Settings for django-post_office
+# async email  settings
 # https://github.com/ui/django-post_office
 
 POST_OFFICE = {
@@ -288,10 +303,11 @@ ADMINS = [
 
 
 # create the application log file if not exists
+
 create_file(LOG_FILE, "")
 
 
-# The application log handlers
+# log
 # https://docs.djangoproject.com/en/4.0/topics/logging/
 
 LOGGING = {
@@ -324,10 +340,10 @@ LOGGING = {
 
 if ENVIRONMENT in ['production',]:
     CACHES = {
-        # 'default': {
-        #     'BACKEND': get_env('CACHE_BACKEND'),
-        #     'LOCATION': get_env('CACHE_LOCATION'),
-        # },
+        'default': {
+            'BACKEND': get_env('CACHE_BACKEND'),
+            'LOCATION': get_env('CACHE_LOCATION'),
+        },
         'staticfiles': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
             'LOCATION': 'staticfiles-filehashes'

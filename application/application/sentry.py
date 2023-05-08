@@ -1,8 +1,11 @@
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from .utils import get_env
+
+
 sentry_sdk.init(
-    dsn="<sentry-token>",
+    dsn=get_env('SENTRY_TOKEN'),
 
     integrations=[
         DjangoIntegration(),
