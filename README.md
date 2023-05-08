@@ -18,14 +18,14 @@ http://localhost:8000
 2. Create the database and set the user, host, password and port
 3. Add the .env parameters
 
-### Create the virtual env
+### Create the virtual environment
 ```
-python3 -m venv .virtualenv
+python3 -m venv .venv
 ```
 
-### Start the virtual env
+### Start the virtual environment
 ```
-source .virtualenv/bin/activate
+source .venv/bin/activate
 ```
 
 ### Install dependencies
@@ -38,7 +38,7 @@ pip3 install --no-cache-dir -r requirements.txt
 python3 manage.py makemigrations auth django_celery_results post_office posts
 ```
 
-### Apply the migrations on database
+### Apply the migrations to database
 ```
 python3 manage.py migrate
 ```

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 from os.path import dirname, abspath
 import secrets
 
@@ -217,6 +218,43 @@ HTML_MINIFY = ENVIRONMENT != 'development'
 # https://github.com/jazzband/django-tinymce
 
 TINYMCE_DEFAULT_CONFIG = { }
+
+
+# POST_OFFICE async email lib settings
+# https://github.com/ui/django-post_office
+
+POST_OFFICE = {
+    # The SMTP standard requires that each email contains a unique Message-ID.
+    'MESSAGE_ID_ENABLED': True,
+
+    # Otherwise, if MESSAGE_ID_FQDN is unset (the default), django-post_office
+    # falls back to the DNS name of the server, which is determined by the
+    # network settings of the host.
+    'MESSAGE_ID_FQDN': get_env('DOMAIN', ""),
+
+    # Log only failed deliveries.
+    # The different options are:
+    #   0 logs nothing
+    #   1 logs only failed deliveries
+    #   2 logs everything (both successful and failed delivery attempts)
+    'LOG_LEVEL': 2,
+
+    # Delivering emails through the Celery worker.
+    'CELERY_ENABLED': True,
+
+    # The default priority for emails is medium, but this can be altered here.
+    # Integration with asynchronous email backends (e.g. based on Celery)
+    # becomes trivial when set to now.
+    'DEFAULT_PRIORITY': 'now',
+
+    # Here we automatically requeue failed email deliveries (is not activated
+    # by default).
+    'MAX_RETRIES': 3,
+
+    # Schedule to be retried 5 minutes later
+    'RETRY_INTERVAL': timedelta(minutes=5),
+}
+POST_OFFICE_CACHE = False
 
 
 # A list of people who get code error notifications
