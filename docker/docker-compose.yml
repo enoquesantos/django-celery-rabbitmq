@@ -1,0 +1,45 @@
+# docker-compose.yml
+version: '3.7' #format version for this docker compose file
+name: django_with_mysql_with_rabbitmq
+
+services:
+
+  # MySQL
+  db:
+    image: mysql:latest
+    container_name: 'mysql'
+    restart: unless-stopped
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=false
+      - MYSQL_USER=app
+      - MYSQL_PASSWORD=c*kqx^&%8LCXd3m&
+      - MYSQL_DATABASE=app
+      - MYSQL_ROOT_PASSWORD=)jGkLZ!nnLXY76u9
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - db:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - database
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - database
+
+volumes:
+  db:
+    driver: local
+
+networks:
+  database:
+    driver: bridge
